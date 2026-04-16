@@ -1,0 +1,165 @@
+# ==========================================================
+
+# 🌐 FRONTEND (Next.js / React / TypeScript)
+
+# ==========================================================
+
+# dependencies
+
+/node_modules
+/frontend/node_modules
+/frontend/.next
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# next.js
+
+/.next/
+/out/
+/build
+
+# typescript
+
+*.tsbuildinfo
+next-env.d.ts
+
+# ==========================================================
+
+# 🐍 BACKEND (FastAPI / Python)
+
+# ==========================================================
+
+**pycache**/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# virtual environments
+
+venv/
+.env/
+.venv/
+ENV/
+
+# python logs
+
+*.log
+
+# ==========================================================
+
+# 🔐 ENV & SECRETS (VERY IMPORTANT)
+
+# ==========================================================
+
+.env*
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# API keys / secrets
+
+*.pem
+*.key
+*.crt
+
+# ==========================================================
+
+# 🧠 ML / DATA / OUTPUT FILES
+
+# ==========================================================
+
+# datasets & generated files
+
+dataset/
+output/
+
+# large data files
+
+*.csv
+*.pcap
+*.pcapng
+
+# model artifacts
+
+*.pkl
+*.joblib
+*.h5
+*.pt
+
+# ==========================================================
+
+# 🗄️ DATABASE / MONGODB
+
+# ==========================================================
+
+# local db dumps / temp files
+
+*.bson
+*.json
+
+# ==========================================================
+
+# 🧪 TESTING & COVERAGE
+
+# ==========================================================
+
+/coverage
+htmlcov/
+.pytest_cache/
+
+# ==========================================================
+
+# 🧰 DEBUG / LOGS
+
+# ==========================================================
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# python debug
+
+*.stackdump
+
+# ==========================================================
+
+# 🖥️ SYSTEM FILES
+
+# ==========================================================
+
+.DS_Store
+Thumbs.db
+
+# ==========================================================
+
+# 🚀 DEPLOYMENT
+
+# ==========================================================
+
+.vercel
+*.zip
+*.tar.gz
+
+# ==========================================================
+
+# ⚡ MISC
+
+# ==========================================================
+
+.idea/
+.vscode/
+
+# temporary files
+
+*.tmp
+*.swp
+*~
