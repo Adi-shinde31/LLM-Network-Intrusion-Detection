@@ -1,18 +1,13 @@
 # app/main.py
 
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.llm_parser import parse_user_prompt
 from app.schema import ParsedTask
 from app.mcp import execute_task
-from app.db import uploads_collection 
 
 import datetime
-import pandas as pd
-import pyshark
-import tempfile
-import os
 from app.db import fs
 
 app = FastAPI(title="LLM Network Control Plane")
@@ -53,38 +48,20 @@ def store_csv_to_mongo(file, filename):
 # ==========================================================
 def store_pcap_to_mongo(file, filename):
 
-    temp_path = os.path.join(tempfile.gettempdir(), filename)
+    file.file.seek(0)
+    content = file.file.read()
 
-    with open(temp_path, "wb") as f:
-        f.write(file.file.read())
+    if not content:
+        raise ValueError("Uploaded file is empty")
 
-    capture = pyshark.FileCapture(temp_path, keep_packets=False)
+    file_id = fs.put(
+        content,
+        filename=filename,
+        file_type="pcap",
+        created_at=datetime.datetime.utcnow()
+    )
 
-    records = []
-
-    for pkt in capture:
-        try:
-            records.append({
-                "timestamp": str(pkt.sniff_time),
-                "src_ip": pkt.ip.src if hasattr(pkt, "ip") else None,
-                "dst_ip": pkt.ip.dst if hasattr(pkt, "ip") else None,
-                "protocol": pkt.highest_layer
-            })
-        except:
-            continue
-
-    capture.close()
-    os.remove(temp_path)
-
-    doc = {
-        "filename": filename,
-        "file_type": "pcap",
-        "rows": records,
-        "created_at": datetime.datetime.utcnow()
-    }
-
-    result = uploads_collection.insert_one(doc)
-    return str(result.inserted_id)
+    return str(file_id)
 
 
 # ==========================================================
@@ -108,7 +85,7 @@ async def parse_prompt(
             file_type = "pcap"
 
         else:
-            return {"error": "Only CSV or PCAP allowed"}
+            raise HTTPException(status_code=400, detail="Only CSV or PCAP files are allowed")
 
     task = parse_user_prompt(prompt)
 

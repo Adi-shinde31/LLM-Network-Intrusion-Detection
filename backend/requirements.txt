@@ -1,8 +1,11 @@
 fastapi
 uvicorn
+python-multipart
 openai
 pydantic
 python-dotenv
 pyshark
+pandas
+numpy
 scikit-learn
 pymongo
