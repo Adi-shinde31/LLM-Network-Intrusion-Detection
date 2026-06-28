@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PCAChart from "./PCAChart";
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
@@ -82,7 +83,10 @@ export default function Home() {
         body: JSON.stringify(parsedTask),
       });
 
-      if (!res.ok) throw new Error("Execution failed");
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Execution failed");
+      }
 
       setLoadingStep("🤖 Running ML models...");
 
@@ -92,8 +96,8 @@ export default function Home() {
       setResult(data);
 
       setLoadingStep("🧠 Generating insights...");
-    } catch (err) {
-      setError("❌ Failed to execute task");
+    } catch (err: any) {
+      setError(err.message || "Execution failed");
     } finally {
       setLoading(false);
       setLoadingStep("");
@@ -183,14 +187,8 @@ export default function Home() {
               <label style={styles.label}>{key}</label>
               <input
                 value={value ?? ""}
-                disabled={key === "file_path"} // 🔥 lock Mongo ID
-                onChange={(e) =>
-                  setParsedTask({
-                    ...parsedTask,
-                    [key]: e.target.value,
-                  })
-                }
-                style={styles.input}
+                disabled
+                style={{ ...styles.input, opacity: 0.7, cursor: "not-allowed" }}
               />
             </div>
           ))}
@@ -216,7 +214,63 @@ export default function Home() {
               value={result.ml_results.unique_suspected_attackers}
               color="#f59e0b"
             />
+            <KPI
+              title="Risk Level"
+              value={result?.ml_results?.risk_level ?? "UNKNOWN"}
+              color={
+                result?.ml_results?.risk_level === "HIGH"
+                  ? "#ef4444"
+                  : result?.ml_results?.risk_level === "MEDIUM"
+                  ? "#f59e0b"
+                  : result?.ml_results?.risk_level === "LOW"
+                  ? "#22c55e"
+                  : "#94a3b8"
+              }
+            />
           </section>
+
+          {result?.ml_results?.pca && (
+            <section style={styles.card}>
+              <h2 style={styles.sectionTitle}>📊 PCA Visualization</h2>
+
+              <p style={{ color: "#94a3b8", marginBottom: "10px" }}>
+                Variance Explained:{" "}
+                {result.ml_results.pca.explained_variance
+                  ?.map((v: number) => (v * 100).toFixed(1) + "%")
+                  .join(", ")}
+              </p>
+
+              <div style={{ marginBottom: "10px", color: "#94a3b8" }}>
+                🟢 Normal Traffic Cluster &nbsp;&nbsp; 🔴 Anomalies (Outliers)
+              </div>
+
+              {/* ✅ FIX: PASS FULL PCA OBJECT */}
+              <PCAChart data={result.ml_results.pca} />
+            </section>
+          )}
+
+          {result.ml_results.top_suspicious_ips?.length > 0 && (
+            <section style={styles.card}>
+              <h2 style={styles.sectionTitle}>🚨 Top Suspicious IPs</h2>
+
+              <table style={{ width: "100%", marginTop: "10px" }}>
+                <thead>
+                  <tr style={{ textAlign: "left", color: "#94a3b8" }}>
+                    <th>Source IP</th>
+                    <th>Suspicious Flows</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.ml_results.top_suspicious_ips.map((ip: any, i: number) => (
+                    <tr key={i}>
+                      <td style={{ padding: "6px 0" }}>{ip.src_ip}</td>
+                      <td>{ip.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )}
 
           {result.explanation && (
             <section style={styles.card}>
@@ -254,6 +308,7 @@ function KPI({ title, value, color = "#6366f1" }: any) {
 
 /* STYLES */
 const styles: any = {
+  
   container: {
     padding: "40px",
     background: "linear-gradient(135deg, #0b1220, #0f172a)",
